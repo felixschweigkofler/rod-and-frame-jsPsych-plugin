@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>A visual task study, part 1</title>
+    <!-- Importing all necessary scripts and sheets -->
+
+    <!-- General jsPsych script and general jsPsych css stylesheet -->
+    <script src="jspsych-6.2.0/jspsych.js"></script>
+    <link href="jspsych-6.2.0/css/jspsych.css" rel="stylesheet" type="text/css">
+
+    <!-- Specific jsPsych plugins used in the experiment -->
+    <script src="jspsych-6.2.0/plugins/jspsych-html-keyboard-response.js"></script>
+    <script src="jspsych-6.2.0/plugins/jspsych-html-button-response.js"></script>
+    <script src="jspsych-6.2.0/plugins/jspsych-resize.js"></script>
+    <script src="jspsych-6.2.0/plugins/jspsych-fullscreen.js"></script>
+
+    <!-- Custom plugin written by me, for the computerized rod and frame task; uses the fabric.js library -->
+    <script src="fabric.min.js"></script>
+    <script src="jspsych-rod-and-frame-task.js"></script>
+
+  </head>
+  <body></body>
+  <script>
+  
+    var timeline = [];
+
+// Defining CRAF task parameters
+    var frame_dimensions = 394 // *2.54cm-per-100px = 10cm
+    var rod_length = frame_dimensions*(3/4)
+    var break_duration = 200
+
+// Fullscreen is turned on, when the participant leaves the fullscreen they would need to make the experiment fullscreen again themselves
+    var fullscreen_on = {
+      type: 'fullscreen',
+      fullscreen_mode: true,
+      button_label: 'Go full screen',
+      message: '<p>The experiment will switch to full screen mode when you press the button below. <br>If you accidentally leave the fullscreen mode, you can return by pressing F11 (or Fn + F11) on your keyboard. </p>'
+    };
+
+// Resizing the display: uses the credit card check, to get browser's inch/pixel-ratio to resize the experiment container to display images in the correct size
+    var resize = {
+      type: 'resize',
+      item_width: 3 + 3/8,		// credit card width in inch
+      item_height: 2 + 1/8,		// credit card height in inch
+      prompt: "<p>Click and drag the lower right corner of the blue box until the box is the same size as a credit card/debit card/library card held up to the screen. It is important that the size is really accurate!<br>Once the box has the exact size of the card, press the button.</p>",
+      pixels_per_unit: 100,		// 100 keeps the font at same size, 150 makes font size smaller
+      button_label: ['Box has the right size'],
+      // additionally stores the following data
+      on_finish: function(data){
+        data.browserwidth_in_cm = 8.56 / data.final_width_px * window.outerWidth;	// calculate the size of the picture in cm, to tell whether the image was too big to fit onto the screen or not.
+        data.browserheight_in_cm = 8.56 / data.final_width_px * window.outerHeight;
+        data.outerwidth_in_px = window.outerWidth;		// store the size of the browser in pixel, to later see whether a "blocky" appearance of the rod in the RAF could have made a difference
+        data.outerheight_in_px = window.outerHeight;
+        data.innerwidth_in_px = window.innerWidth;
+        data.innerheight_in_px = window.innerHeight;
+      }
+    };
+    // Now the experiment is set to display 100 pixels of an input image as 1 inch (either the real input size or - if specified - the size defined by stimulus_height and stimulus_width
+    // Calculate the pixel dimensions of the images needed to get the correct display size on the screen in inch: Take the desired display size of pictures in INCH, multiply by pixels_per_unit (100) and out come the dimensions in PIXEL that the input image must have, so that it is displayed in the correct INCH-size on all computers.
+
+
+// 4.1 Instructions for CRAF
+    var CRAF_introduction = {
+        type: 'html-button-response',
+        stimulus: "<p>This is a practice round.<br><br><br></p>" +
+            "<p><b>Instructions:</b> You will see a squared frame and some dots in it that form a hypothetical line. The frame can be horizontal or rotated in any direction.<br>" +
+            "Please rotate the 'line' until it is vertical. You can rotate it counterclockwise by pressing <b>'E'</b> and clockwise by pressing <b>'I'</b> (the steps are small to allow for very fine adjustment; you can keep a key pressed). Once the dots are vertical, you can go to the next trial by pressing <b>'space'</b>.<br>" +
+            "There is no need to hurry.<br>",
+        choices: ['Start practice']
+    };
+
+// 4.2 CRAF practice trials, equal to actual trials, but only 2 instead of 48
+    var CRAF_practice = {
+        timeline: [
+            {
+                // the following slide constitutes one CRAF-trial
+                type: "rod-and-frame-task",
+                frame_dims: frame_dimensions,
+                frame_angle: jsPsych.timelineVariable('frame_a'),
+                rod_length: rod_length,
+                rod_starting_angle: jsPsych.timelineVariable('rod_a'),
+                prompt: jsPsych.timelineVariable('prompt'),
+                break_duration: break_duration,
+                min_input: "true",
+                rotation_step: 1/3
+            }
+        ],
+        // each line of the timeline_variables will trigger one trial, it contains the parameters the CRAF-plugin needs to draw the trial onto the canvas
+        timeline_variables: [
+            {frame_a: 0, rod_a: 80, prompt: "<p>Use 'E' to rotate clockwise and 'I' to rotate counterclockwise. <br>Press 'space' to continue.</p>"},
+            {frame_a: 18, rod_a: 115, prompt: null}
+        ],
+    }
+
+// 4.3 Announce the beginning of the actual task
+    var CRAF_task_announcement = {
+        type: 'html-button-response',
+        stimulus: "<p>This was the practice phase. Now the task phase starts. (~4 min)<br><br><br></p>" +
+            "<p><b>Instructions reminder:</b> You will see a squared frame and some dots in it that form a hypothetical line. The frame can be horizontal or rotated in any direction.<br>" +
+            "Please rotate the 'line' until it is vertical. You can rotate it counterclockwise by pressing <b>'E'</b> and clockwise by pressing <b>'I'</b> (the steps are very small to allow for very fine adjustment). Once the two dots are vertical, you can go to the next trial by pressing <b>'space'</b>.<br><br>" +
+            "There is no need to hurry. Plase keep 50 cm distance (~armslength) to the screen.</p>",
+        choices: ["Start task"]
+    };
+
+// 4.4 CRAF actual trials
+    var CRAF_task = {
+        timeline: [
+            // the following slide constitutes one CRAF-trial
+            // all necessary data is automatically recorded by the plugin (records the parameters of each trial as well as all key-presses of the participant)
+            {
+                type: "rod-and-frame-task",
+                frame_dims: frame_dimensions,
+                frame_angle: jsPsych.timelineVariable('frame_a'),
+                rod_length: rod_length,
+                rod_starting_angle: jsPsych.timelineVariable('rod_a'),
+                frame_col: jsPsych.timelineVariable('frame_c'),
+                break_duration: break_duration,
+                min_input: "true",
+                rotation_step: 1/3
+            },
+        ],
+        // each line of the timeline_variables will trigger one trial, it contains the parameters the CRAF-plugin needs to draw the trial onto the canvas
+        timeline_variables: [
+
+            {frame_a: 18, rod_a: 70,  frame_c: "white"},
+            {frame_a: 18, rod_a: 73,  frame_c: "white"},
+            {frame_a: 18, rod_a: 76,  frame_c: "white"},
+            {frame_a: 18, rod_a: 110, frame_c: "white"},
+            {frame_a: 18, rod_a: 107, frame_c: "white"},
+            {frame_a: 18, rod_a: 104, frame_c: "white"},
+
+            {frame_a: -18, rod_a: 70,  frame_c: "white"},
+            {frame_a: -18, rod_a: 73,  frame_c: "white"},
+            {frame_a: -18, rod_a: 76,  frame_c: "white"},
+            {frame_a: -18, rod_a: 110, frame_c: "white"},
+            {frame_a: -18, rod_a: 107, frame_c: "white"},
+            {frame_a: -18, rod_a: 104, frame_c: "white"},
+
+        ],
+        randomize_order: true,
+        repetitions: 2
+    }
+
+// Turn the fullscreen off
+    var fullscreen_off = {
+      type: 'fullscreen',
+      fullscreen_mode: false
+    };
+
+
+// All 4 segments of the CRAF-section are pushed into the timeline-array (behind segments of the Navon-section)
+    timeline.push(fullscreen_on, resize, CRAF_introduction, CRAF_practice, CRAF_task_announcement, CRAF_task, fullscreen_off)
+
+
+// for demonstration purposes, this script will run directly in the browser with the following command:
+    jsPsych.init({
+      timeline: timeline,
+      show_progress_bar: true,
+      on_finish: function() {
+        //jsPsych.data.get().localSave('csv','my_testrun_craf_raw_data.csv');
+        jsPsych.data.displayData();
+      }
+    })
+
+
+  </script>
+</html>
