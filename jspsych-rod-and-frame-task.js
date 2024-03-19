@@ -2,6 +2,7 @@
  * ROD AND FRAME TASK
  *
  * This plugin uses fabric.js to draw a rod and frame task with certain specifications onto a canvas
+ * Compatible with jsPsych 6.2.0
  *
  * @author Felix Schweigkofler
  **/
@@ -40,7 +41,7 @@ jsPsych.plugins["rod-and-frame-task"] = (function() {
                 type: jsPsych.plugins.parameterType.INT,
                 pretty_name: 'Frame angle',
                 default: undefined,
-                description: 'The angle of the frame as seen from unit circle in degrees (up = 90°))'
+                description: 'The angle of the frame as seen from unit circle in degrees (up = 90°)'
             },
             frame_stroke: {
                 type: jsPsych.plugins.parameterType.INT,
@@ -58,7 +59,7 @@ jsPsych.plugins["rod-and-frame-task"] = (function() {
                 type: jsPsych.plugins.parameterType.INT,
                 pretty_name: 'Rod starting angle',
                 default: undefined,
-                description: 'The starting angle of the hypothetical rod in degrees in the unit circle (0° right, 90° top, 180° left, 270° bottom), fractions are possible'
+                description: 'The starting angle of the hypothetical rod in degrees in the unit circle (0° right, 90° top, 180° left, 270° bottom)'
             },
             rotation_step: {
                 type: jsPsych.plugins.parameterType.FLOAT,
@@ -82,7 +83,7 @@ jsPsych.plugins["rod-and-frame-task"] = (function() {
                 type: jsPsych.plugins.parameterType.STRING,
                 pretty_name: 'Rod colour',
                 default: 'white',
-                description: "The colour of the rod or dots."
+                description: "The colour of the rod or dots"
             },
             frame_col: {
                 type: jsPsych.plugins.parameterType.STRING,
